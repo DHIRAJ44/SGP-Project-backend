@@ -1,0 +1,51 @@
+version: '6.8'
+
+services:
+  web:
+    build: .
+    command: gunicorn placement.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SECRET_KEY: mysecretkey123
+      DEBUG: "True"
+      DB_NAME: sgp_db
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_HOST: db
+      DB_PORT: 3306
+      EMAIL_HOST: smtp.gmail.com
+      EMAIL_PORT: 587
+      EMAIL_USE_TLS: "True"
+      EMAIL_HOST_USER: your-email@gmail.com
+      EMAIL_HOST_PASSWORD: your-email-password
+      SESSION_COOKIE_SECURE: "False"
+      CSRF_COOKIE_HTTPONLY: "True"
+      CSRF_USE_SESSIONS: "True"
+      CORS_ALLOW_ALL_ORIGINS: "True"
+      CORS_ALLOW_CREDENTIALS: "True"
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: sgp_db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mysql_data:
